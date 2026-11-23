@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+        <!-- Header-->
+        <header class="bg-dark py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bolder">Checkout</h1>
+                    <p class="lead fw-normal text-white-50 mb-0">Review Your Order...</p>
+                </div>
+            </div>
+        </header>
+        <br/>
+        <div class="container">
+            <div class="row">
+                
+                    <div class="col-md-6 offset-md-3">
+          <div class="card">
+          <div class="card-header">
+             <strong>Order Summary</strong>
+          </div>
+          <div class="card-body">
+            {% for product in cart_products %}
+                {{ product.name }}: 
+                    {% if product.is_sale %}
+                        PKR {{ product.sale_price }}
+                    {% else %}
+                        PKR {{ product.price }}
+                {% endif %}
+
+                <br/>
+                <small>
+                    {% for key, value in quantities.items %}
+                        {% if key == product.id|slugify %}
+                            <ul class="list-unstyled large">
+                                <li>Quantity: {{ value.quantity }}</li>
+                                {% if value.cleaning_kit %}<li>Cleaning Kit: Included</li>{% endif %}
+                                {% if value.prescription_type %}<li>Prescription Type: {{ value.prescription_type }}</li>{% endif %}
+                                {% if value.lens_type %}<li>Lens Type: {{ value.lens_type }}</li>{% endif %}
+                                {% if value.right_sph %}<li>Right SPH: {{ value.right_sph }}</li>{% endif %}
+                                {% if value.right_cyl %}<li>Right CYL: {{ value.right_cyl }}</li>{% endif %}
+                                {% if value.right_axis %}<li>Right Axis: {{ value.right_axis }}</li>{% endif %}
+                                {% if value.left_sph %}<li>Left SPH: {{ value.left_sph }}</li>{% endif %}
+                                {% if value.left_cyl %}<li>Left CYL: {{ value.left_cyl }}</li>{% endif %}
+                                {% if value.left_axis %}<li>Left Axis: {{ value.left_axis }}</li>{% endif %}
+                                {% if value.prescription_text %}<li>Prescription Text: {{ value.prescription_text }}</li>{% endif %}
+                                {% if value.prescription_file %}
+                                    <li>Prescription File: <a href="/media/{{ value.prescription_file }}" target="_blank">View File</a></li>
+                                {% endif %}
+                            </ul>
+                        {% endif %}
+                    {% endfor %}
+                </small>
+                <br/><br/>
+
+            {% endfor %}
+            <strong>Total:  PKR {{ totals }}</strong>
+            <br/><br/>
+            <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-secondary">Update Items</a>
+          </div>
+        </div>
+<br/><br/>
+<div class="card">
+  <div class="card-header">
+    <strong>Shipping Info</strong>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{% url 'billing_info' %}">
+        {% csrf_token %}
+    {{ shipping_form.as_p }}
+
+  </div>
+</div>
+<br/>
+
+<button type="submit" class="btn btn-secondary">
+        Continue To Billing
+</button>
+
+</form>
+<br/><br/>
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+{% endblock %}

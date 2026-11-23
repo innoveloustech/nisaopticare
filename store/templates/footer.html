@@ -1,0 +1,77 @@
+{% load tz %}
+<!-- templates/footer.html -->
+
+<!-- Include Font Awesome CDN once in base.html head -->
+<footer class="bg-dark text-white pt-5 pb-4">
+    <div class="container text-md-left">
+        <div class="row text-md-left">
+
+            <!-- Logo / About -->
+            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                <h5 class="footer-heading mb-4 font-weight-bold">NisaOpticare</h5>
+                <p>
+                    Your trusted online store for optical products. Quality lenses, frames, and eye-care solutions at affordable prices.
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mt-3">
+                <h5 class="footer-heading mb-4 font-weight-bold">Quick Links</h5>
+                <p><a href="{% url 'home' %}" class="text-white" style="text-decoration: none;">Home</a></p>
+                <p><a href="{% url 'shop' %}" class="text-white" style="text-decoration: none;">Shop</a></p>
+                <p><a href="{% url 'about' %}" class="text-white" style="text-decoration: none;">About</a></p>
+                <p><a href="{% url 'category_summary' %}" class="text-white" style="text-decoration: none;">Category Summary</a></p>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                <h5 class="footer-heading mb-4 font-weight-bold">Contact</h5>
+                <p><i class="fas fa-map-marker-alt me-2"></i>{{ store_info.address }}</p>
+                <p><i class="fas fa-envelope me-2"></i>{{ store_info.email }}</p>
+                <p><i class="fas fa-phone me-2"></i>{{ store_info.phone_1 }}</p>                
+                {% if store_info.phone_2 %}
+                <p><i class="fas fa-phone me-2"></i>{{ store_info.phone_2 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Social Media -->
+            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
+                <h5 class="footer-heading mb-4 font-weight-bold">Follow Us</h5>
+                <!-- Facebook -->
+                {% if store_info.facebook %}
+                    <a href="{{ store_info.facebook }}" class="text-white me-4 fs-5 text-decoration-none" target="_blank">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                {% endif %}
+
+                <!-- Instagram -->
+                {% if store_info.instagram %}
+                    <a href="{{ store_info.instagram }}" class="text-white me-4 fs-5 text-decoration-none" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                {% endif %}
+
+                <!-- TikTok -->
+                {% if store_info.tiktok %}
+                    <a href="{{ store_info.tiktok }}" class="text-white me-4 fs-5 text-decoration-none" target="_blank">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <hr class="mb-4">
+
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <p class="text-center mb-0">
+                    © {% now "Y" %} 
+                    <a href="https://www.innovelous.com" target="_blank" rel="noopener" class="text-decoration-none text-white">
+                        Innovelous Tech
+                    </a>. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>

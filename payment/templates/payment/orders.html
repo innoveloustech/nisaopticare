@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <!-- Order Header -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>🧾 Order #{{ order.id }} — PKR {{ order.amount_paid|floatformat:0 }}</h4>
+                </div>
+                <div class="card-body ">
+                    <p><strong>Email:</strong> {{ order.email }}</p>
+
+                    {% if order.date_shipped %}
+                        <p><strong>Date Shipped:</strong> {{ order.date_shipped|date:"d M Y, h:i A" }}</p>
+                    {% else %}
+                        <p><strong>Date Ordered:</strong> {{ order.date_ordered|date:"d M Y, h:i A" }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <p><strong>Customer:</strong> {{ order.full_name }}</p>
+                    <p><strong>Shipping Address:</strong><br>
+                        <!-- <pre style="white-space: pre-wrap;">{{ order.shipping_address }}</pre> -->
+                        <pre style="white-space: pre-wrap; font-size: 1.0rem;">{{ order.shipping_address }}</pre>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>📦 Order Items</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <!-- <th>Price (PKR)</th> -->
+                                <!-- <th>Subtotal</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.product }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <!-- <td>{{ item.price }}</td> -->
+                                <!-- <td>{{ item.price|floatformat:2|add:""|floatformat:2|floatformat:2|floatformat:2|add:""|floatformat:2|floatformat:2|floatformat:2|add:""|floatformat:2|floatformat:2|floatformat:2 }}</td> -->
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Shipping Status -->
+            <!-- <div class="text-center">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% if not order.shipped %}
+                        <input type="hidden" name="shipping_status" value="true">
+                        <button type="submit" class="btn btn-success">✅ Mark as Shipped</button>
+                    {% else %}
+                        <input type="hidden" name="shipping_status" value="false">
+                        <button type="submit" class="btn btn-danger">❌ Mark as Not Shipped</button>
+                    {% endif %}
+                </form>
+            </div> -->
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Nisa Opticare Admin{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="icon" type="image/png" href="{% static 'images/admin-logo.png' %}">
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+      <img src="{% static 'images/admin-logo.png' %}" alt="Nisa Opticare" style="height: 40px; vertical-align: middle;">
+      <span style="vertical-align: middle;">Nisa Opticare</span>
+    </a>
+  </h1>
+{% endblock %}

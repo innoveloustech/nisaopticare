@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container mt-5 mb-5">
+
+  <!-- ✅ Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'shop' %}">Shop</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+
+    <!-- ✅ Left: Product Image Gallery -->
+    <!-- Left: Image gallery -->
+    <div class="col-md-6">
+      <div id="mainImageCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="{{ product.image.url }}" class="d-block w-100 border rounded" alt="{{ product.name }}">
+          </div>
+          {% for image in product.additional_images.all %}
+            <div class="carousel-item">
+              <img src="{{ image.image.url }}" class="d-block w-100 border rounded" alt="{{ product.name }}">
+            </div>
+          {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainImageCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainImageCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </button>
+      </div>
+
+
+      <!-- Thumbnail carousel -->
+      <div class="position-relative">
+        <button class="btn btn-sm btn-outline-dark position-absolute top-50 start-0 translate-middle-y z-1" onclick="scrollThumbnails(-100)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div id="thumbContainer" class="d-flex overflow-auto py-2 px-5" style="scroll-behavior: smooth;">
+          <img src="{{ product.image.url }}" class="img-thumbnail me-2" style="width: 80px; cursor: pointer;" onclick="changeMainImage(this.src)">
+          {% for image in product.additional_images.all %}
+            <img src="{{ image.image.url }}" class="img-thumbnail me-2" style="width: 80px; cursor: pointer;" onclick="changeMainImage(this.src)">
+          {% endfor %}
+        </div>
+
+        <button class="btn btn-sm btn-outline-dark position-absolute top-50 end-0 translate-middle-y z-1" onclick="scrollThumbnails(100)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+
+    </div>
+
+    <!-- ✅ Right: Product Info -->
+    <div class="col-md-6">
+      <div class="bg-white border rounded p-4 shadow-sm">
+
+        <!-- Product Title -->
+        <h2 class="mb-1 fw-bold">{{ product.name }}</h2>
+
+        <!-- 🔥 Star Rating and Review Count -->
+        {% if average_rating %}
+          <div class="mb-2">
+            {% with avg=average_rating|floatformat:0 %}
+              {% for i in "12345"|make_list %}
+                {% if forloop.counter <= avg|add:"0" %}
+                  <i class="bi bi-star-fill text-warning"></i>
+                {% else %}
+                  <i class="bi bi-star text-muted"></i>
+                {% endif %}
+              {% endfor %}
+            {% endwith %}
+            <small class="text-muted">({{ reviews.count }} review{{ reviews.count|pluralize }})</small>
+          </div>
+        {% endif %}
+
+
+
+        <!-- Description -->
+        <p class="text-muted">{{ product.description }}</p>
+
+        <!-- Product Stock -->
+        {% if product.quantity_in_stock > 0 %}
+          <p><strong>In Stock:</strong> {{ product.quantity_in_stock }} available</p>
+        {% else %}
+          <p class="text-danger"><strong>Out of Stock</strong></p>
+        {% endif %}
+
+
+        <!-- Price -->
+        {% if product.is_sale %}
+          <div class="mb-3">
+            <span class="badge bg-danger mb-2">Sale</span><br>
+            <span class="text-muted text-decoration-line-through">PKR {{ product.price }}</span><br>
+            <span class="text-danger fs-5 fw-bold">PKR {{ product.sale_price }}</span>
+          </div>
+        {% else %}
+          <p class="fw-bold fs-5">PKR {{ product.price }}</p>
+        {% endif %}
+
+        
+        <div >
+          {% if product.enable_tryon and product.tryon_image %}
+            <a href="{% url 'product_tryon' product.id %}" class="btn btn-outline-dark">👓 Try On</a>
+          {% endif %}
+        </div>
+
+        <hr>
+
+        <!-- Quantity -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Quantity</label>
+          <input
+              type="number"
+              id="qty-cart"
+              class="form-control w-auto d-inline-block me-2"
+              min="1"
+              max="{{ product.quantity_in_stock }}"
+              value="{{ prefill.quantity|default:'' }}"
+          >
+          <!-- <select class="form-select w-50" id="qty-cart">
+            {% for i in "12345" %}
+              <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+          </select> -->
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="product-form">
+        {% csrf_token %}
+
+          <!-- 1. Extra Cleaning Kit -->
+          <div class="mb-3">
+            <!-- <input type="checkbox" id="cleaning-kit" name="add_cleaning_kit" data-price="{{ addon_settings.extra_cleaning_kit_price }}"> -->
+            <input type="checkbox" id="cleaning-kit" name="add_cleaning_kit"
+                {% if prefill.cleaning_kit %}checked{% endif %}
+                data-price="{{ addon_settings.extra_cleaning_kit_price }}">
+            <label for="cleaning-kit">Add Extra Cleaning Kit (+₨ {{ addon_settings.extra_cleaning_kit_price }})</label>
+          </div>
+
+          <!-- 2. Prescription Glasses Dropdown -->
+          <div class="mb-3">
+            <label for="prescription-type">Prescription Glasses Option</label>
+            <select id="prescription-type" name="prescription_type" class="form-select" required>
+              <option value="">-- Select Option --</option>
+
+              {% if product.glass_type == 'sunglasses' %}
+                <option value="sunglasses_only" data-price="{{ addon_settings.sunglasses_only_price }}" {% if prefill.prescription_type == 'sunglasses_only' %}selected{% endif %}>Sunglasses Only (+₨ {{ addon_settings.sunglasses_only_price }})</option>
+                <option value="prescription_lens" {% if prefill.prescription_type == 'prescription_lens' %}selected{% endif %}>Prescription Lens</option>
+
+              {% elif product.glass_type == 'eyeglasses' %}
+                <option value="frame_only" data-price="{{ addon_settings.frame_only_price }}" {% if prefill.prescription_type == 'frame_only' %}selected{% endif %}>Frame Only (+₨ {{ addon_settings.frame_only_price }})</option>
+                <option value="non_prescription" data-price="{{ addon_settings.non_prescription_blue_cut_price }}" {% if prefill.prescription_type == 'non_prescription' %}selected{% endif %}>Non Prescription Blue Cut (+₨ {{ addon_settings.non_prescription_blue_cut_price }})</option>
+                <option value="prescription_lens" {% if prefill.prescription_type == 'prescription_lens' %}selected{% endif %}>Prescription Lens</option>
+              {% endif %}
+            </select>
+          </div>
+
+          <!-- 3. Prescription Lens Section (hidden unless selected) -->
+          <div id="lens-section" class="d-none mb-3">
+            <label>Choose Your Lens Type</label>
+            <select id="lens-type" name="lens_type" class="form-select">
+              <option value="">-- Select Lens Type --</option>
+              <option value="blue_ray" data-price="{{ addon_settings.blue_ray_protection_price }}" {% if prefill.lens_type == 'blue_ray' %}selected{% endif %}>Blue Ray Protection (+₨ {{ addon_settings.blue_ray_protection_price }})</option>
+              <option value="cr_multicoated" data-price="{{ addon_settings.cr_multicoated_price }}" {% if prefill.lens_type == 'cr_multicoated' %}selected{% endif %}>CR Multicoated (+₨ {{ addon_settings.cr_multicoated_price }})</option>
+              <option value="photochromatic" data-price="{{ addon_settings.photochromatic_lens_price }}" {% if prefill.lens_type == 'photochromatic' %}selected{% endif %}>Photochromatic Lens (+₨ {{ addon_settings.photochromatic_lens_price }})</option>
+
+              {% if product.glass_type == 'sunglasses' %}
+                <option value="colored" data-price="{{ addon_settings.colored_lens_price }}" {% if prefill.lens_type == 'colored' %}selected{% endif %}>Colored Lens (+₨ {{ addon_settings.colored_lens_price }})</option>
+              {% endif %}
+            </select>
+          </div>
+
+          <!-- 4. Eye Prescription Fields -->
+          <div id="eye-details" class="d-none mb-3">
+            <h6>Right Eye (OD)</h6>
+            <input type="number" step="0.25" min="-12" max="12" name="right_sph" placeholder="Sphere (+6 to -12)" class="form-control mb-1" value="{{ prefill.right_sph|default:'' }}">
+            <input type="number" step="0.25" min="-5" max="4" name="right_cyl" placeholder="Cylinder (+4 to -5)" class="form-control mb-1" value="{{ prefill.right_cyl|default:'' }}">
+            <input type="number" min="0" max="180" name="right_axis" placeholder="Axis (0 to 180)" class="form-control mb-2" value="{{ prefill.right_axis|default:'' }}">
+
+            <h6>Left Eye (OS)</h6>
+            <input type="number" step="0.25" min="-12" max="12" name="left_sph" placeholder="Sphere (+6 to -12)" class="form-control mb-1" value="{{ prefill.left_sph|default:'' }}">
+            <input type="number" step="0.25" min="-5" max="4" name="left_cyl" placeholder="Cylinder (+4 to -5)" class="form-control mb-1" value="{{ prefill.left_cyl|default:'' }}">
+            <input type="number" min="0" max="180" name="left_axis" placeholder="Axis (0 to 180)" class="form-control mb-2" value="{{ prefill.left_axis|default:'' }}">
+          </div>
+
+          <!-- 5. Upload or Enter Prescription -->
+          <div class="mb-3">
+            <label>Prescription Text (optional)</label>
+            <input type="text" name="prescription_text" class="form-control" placeholder="e.g., -1.25 / -0.75" value="{{ prefill.prescription_text|default:'' }}">
+          </div>
+
+          <!-- {% if item.prescription_file %}
+            <div class="mb-3">
+              <label><strong>Previously Uploaded Prescription File:</strong></label><br>
+              <a href="{{ item.prescription_file.url }}" target="_blank">📄 View Uploaded File</a>
+            </div>  
+          {% endif %} -->
+
+          <div class="mb-3">
+
+          {% if prefill.prescription_file_url %}
+            <p>
+              Existing Prescription File: 
+              <a href="/media/{{ prefill.prescription_file_url }}" target="_blank">View File</a>
+            </p>
+          {% endif %}
+          </div>
+
+
+          <div class="mb-3">
+            <label>Upload Prescription File (optional)</label>
+            <input type="file" name="prescription_file" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+          </div>
+
+          <!-- 6. Total Price Summary -->
+          <hr>
+          <div>
+            <p> <strong>Product Total:</strong> PKR <span id="product-price">{{ product.price }}</span></p>
+            <p> <strong>Options Total:</strong> PKR <span id="options-price">0</span></p>
+            <p> <strong>Grand Total:</strong> PKR <span id="grand-total">{{ product.price }}</span></p>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-3">
+            
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back to Home</a>
+            {% if product.quantity_in_stock > 0 %}
+              <button type="button" value="{{ product.id }}" class="btn btn-success" id="add-cart">Add To Cart</button>
+            {% else %}
+              <button type="button" class="btn btn-secondary" disabled>Add To Cart</button>
+            {% endif %}
+          </div>
+
+          <br>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Size Guide -->
+  <div class="container mt-5">
+    <h4 class="fw-bold border-bottom pb-2 mb-4">Frame Size Guide</h4>
+    
+    <img src="{% static 'images/Frame_Size_Guide.jpeg' %}" 
+        alt="Frame Size Guide" 
+        class="img-fluid rounded shadow-sm"
+        style="max-width: 500px; height: auto;">
+
+  </div>
+
+  <!-- Customer Reviews Section -->
+  <div class="mt-5">
+    <h4 class="fw-bold border-bottom pb-2 mb-4">Customer Reviews</h4>
+
+    {% if average_rating %}
+      <div class="mb-3">
+        <strong>Average Rating:</strong>
+        {% with avg=average_rating|floatformat:0 %}
+          {% for i in "12345"|make_list %}
+            {% if forloop.counter <= avg|add:"0" %}
+              <i class="bi bi-star-fill text-warning"></i>
+            {% else %}
+              <i class="bi bi-star text-muted"></i>
+            {% endif %}
+          {% endfor %}
+        {% endwith %}
+        <small class="text-muted">({{ reviews.count }} review{{ reviews.count|pluralize }})</small>
+      </div>
+    {% endif %}
+
+
+    <!-- 🔁 List of Reviews -->
+    {% for review in reviews %}
+    
+      <div class="mb-4 border-bottom pb-3">
+        <div class="d-flex align-items-center mb-2">
+          <!-- Avatar Circle -->
+          <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
+              style="width: 50px; height: 50px; font-size: 1.2rem;">
+            {% if review.user %}
+              {{ review.user.username|first|upper }}
+            {% else %}
+              A
+            {% endif %}
+          </div>
+
+          <!-- Username and Stars -->
+          <div class="d-flex flex-column align-items-start">
+            <strong>
+              
+              {% if review.user %}
+                &nbsp;
+                {{ review.user.username }}
+              {% else %}
+                Anonymous
+              {% endif %}
+            </strong>
+
+            <!-- Star Rating -->
+            <span class="ms-2 text-warning">
+              {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}
+                  <i class="bi bi-star-fill"></i>
+                {% else %}
+                  <i class="bi bi-star text-muted"></i>
+                {% endif %}
+              {% endfor %}
+            </span>
+          </div>
+        </div>
+
+
+        <p class="mt-2 mb-1">{{ review.comment }}</p>
+        <small class="text-muted">{{ review.created_at|date:"F j, Y" }}</small>
+      </div>
+    {% empty %}
+      <p class="text-muted">No reviews yet.</p>
+    {% endfor %}
+
+    <hr class="my-4">
+
+    <!-- 📝 Review Submission Form -->
+    <h5 class="fw-semibold mb-3">Leave a Review</h5>
+
+    <form method="POST" class="border p-4 rounded bg-light shadow-sm">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="id_rating" class="form-label">Rating</label>
+        {{ form.rating|add_class:"form-select w-25" }}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_comment" class="form-label">Comment</label>
+        {{ form.comment|add_class:"form-control" }}
+      </div>
+
+      <button type="submit" class="btn btn-secondary">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- JavaScript -->
+<script>
+  
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const productPrice = parseInt("{{ product.price }}");
+
+    const cleaningKit = document.getElementById("cleaning-kit");
+    const prescriptionType = document.getElementById("prescription-type");
+    const lensType = document.getElementById("lens-type");
+    const lensSection = document.getElementById("lens-section");
+    const eyeDetails = document.getElementById("eye-details");
+    const qtySelect = document.getElementById("qty-cart");
+
+    const optionsPriceEl = document.getElementById("options-price");
+    const grandTotalEl = document.getElementById("grand-total");
+
+    // ===== Helper to toggle sections =====
+    function toggleLensSections() {
+      const selected = prescriptionType.value;
+      if (selected === "prescription_lens") {
+        lensSection.classList.remove("d-none");
+        eyeDetails.classList.remove("d-none");
+      } else {
+        lensSection.classList.add("d-none");
+        eyeDetails.classList.add("d-none");
+      }
+    }
+
+    // ===== Total Price Calculation =====
+    function calculateOptionsTotal() {
+      let total = 0;
+
+      if (cleaningKit.checked) {
+        total += parseInt(cleaningKit.dataset.price || 0);
+      }
+
+      const selectedPrescription = prescriptionType.selectedOptions[0];
+      if (selectedPrescription && selectedPrescription.dataset.price) {
+        total += parseInt(selectedPrescription.dataset.price);
+      }
+
+      if (!lensSection.classList.contains('d-none')) {
+        const selectedLens = lensType.selectedOptions[0];
+        if (selectedLens && selectedLens.dataset.price) {
+          total += parseInt(selectedLens.dataset.price);
+        }
+      }
+
+      optionsPriceEl.innerText = total;
+      grandTotalEl.innerText = productPrice + total;
+    }
+
+    // ===== Prefill From URL =====
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // 1. Cleaning Kit
+    if (urlParams.get("cleaning_kit") === "True") {
+      cleaningKit.checked = true;
+    }
+
+    // 2. Prescription Type
+    const prescriptionValue = urlParams.get("prescription_type");
+    if (prescriptionValue) {
+      prescriptionType.value = prescriptionValue;
+    }
+
+    // 3. Toggle sections based on prefilled prescription
+    toggleLensSections();
+
+    // 4. Lens Type (only after it's visible)
+    const lensValue = urlParams.get("lens_type");
+    if (lensValue && !lensSection.classList.contains('d-none')) {
+      lensType.value = lensValue;
+    }
+
+    // 5. Eye Fields
+    const fields = ["right_sph", "right_cyl", "right_axis", "left_sph", "left_cyl", "left_axis", "prescription_text"];
+    fields.forEach(field => {
+      const input = document.querySelector(`[name="${field}"]`);
+      if (input && urlParams.has(field)) {
+        input.value = urlParams.get(field);
+      }
+    });
+
+    // 6. Quantity
+    const qty = urlParams.get("quantity");
+    if (qty && qtySelect) {
+      qtySelect.value = qty;
+    }
+
+    
+    // 7. Prescription File URL (if any)
+    // const prescriptionFileUrl = urlParams.get('prescription_file_url');
+    // if (prescriptionFileUrl) {
+    //   // Show a link to the existing file on the page
+    //   const container = document.getElementById('existing-prescription-file-container');
+    //   container.innerHTML = `<a href="${prescriptionFileUrl}" target="_blank">📄 View Uploaded Prescription File</a>`;
+    // }
+
+    // ===== Event Listeners =====
+    prescriptionType.addEventListener("change", function () {
+      toggleLensSections();
+      calculateOptionsTotal();
+    });
+
+    [cleaningKit, lensType, prescriptionType].forEach(el => {
+      el.addEventListener("change", calculateOptionsTotal);
+    });
+
+    // Final calculation after all prefill
+    calculateOptionsTotal();
+
+    // Change main image when thumbnail clicked
+    function changeMainImage(src) {
+      const mainCarousel = document.getElementById('mainImageCarousel');
+      const carousel = bootstrap.Carousel.getInstance(mainCarousel);
+      const slides = mainCarousel.querySelectorAll('.carousel-item img');
+
+      slides.forEach((img, index) => {
+        if (img.src === src) {
+          carousel.to(index);
+        }
+      });
+    }
+
+    // Scroll thumbnails
+    function scrollThumbnails(offset) {
+      const container = document.getElementById('thumbContainer');
+      container.scrollLeft += offset;
+    }
+
+    // AJAX Add to Cart
+    $(document).on('click', '#add-cart', function(e) {
+      e.preventDefault();
+
+      const cleaningKit = $('#cleaning-kit').is(':checked') ? 'yes' : 'no';
+      const prescriptionType = $('#prescription-type').val();
+      const lensType = $('#lens-type').val();
+
+      // Eye prescription values
+      const rightSph = $('input[name="right_sph"]').val();
+      const rightCyl = $('input[name="right_cyl"]').val();
+      const rightAxis = $('input[name="right_axis"]').val();
+
+      const leftSph = $('input[name="left_sph"]').val();
+      const leftCyl = $('input[name="left_cyl"]').val();
+      const leftAxis = $('input[name="left_axis"]').val();
+
+      const prescriptionText = $('input[name="prescription_text"]').val();
+      const prescriptionFile = $('input[name="prescription_file"]')[0].files[0]; // Not supported via normal formData here
+
+      let formData = new FormData();
+      formData.append('product_id', $('#add-cart').val());
+      // formData.append('product_qty', $('#qty-cart option:selected').text());
+      formData.append('product_qty', $('#qty-cart').val());
+
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      formData.append('action', 'post');
+
+      formData.append('cleaning_kit', cleaningKit);
+      formData.append('prescription_type', prescriptionType);
+      formData.append('lens_type', lensType);
+
+      formData.append('right_sph', rightSph);
+      formData.append('right_cyl', rightCyl);
+      formData.append('right_axis', rightAxis);
+      formData.append('left_sph', leftSph);
+      formData.append('left_cyl', leftCyl);
+      formData.append('left_axis', leftAxis);
+
+      formData.append('prescription_text', prescriptionText);
+      if (prescriptionFile) {
+          formData.append('prescription_file', prescriptionFile);
+      }
+
+      $.ajax({
+          type: 'POST',
+          url: "{% url 'cart_add' %}",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(json) {
+              document.getElementById("cart_quantity").textContent = json.qty;
+              location.reload();
+          },
+          error: function(xhr, errmsg, err) {
+              console.log(xhr.responseText);
+          }
+      });
+    });
+  });
+
+</script>
+{% endblock %}

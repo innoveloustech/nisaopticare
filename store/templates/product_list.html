@@ -1,0 +1,9 @@
+<div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3 justify-content-center">
+    {% for product in page_obj %}
+        {% include 'product_card.html' with product=product %}
+    {% empty %}
+        <p>No products found.</p>
+    {% endfor %}
+</div>
+
+{% include 'pagination.html' %}

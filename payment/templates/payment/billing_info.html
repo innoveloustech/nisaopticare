@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+  <!-- Header-->
+  <header class="bg-dark py-5">
+      <div class="container px-4 px-lg-5 my-5">
+          <div class="text-center text-white">
+              <h1 class="display-4 fw-bolder">Billing Info</h1>
+              <p class="lead fw-normal text-white-50 mb-0">Enter Your Payment Info...</p>
+          </div>
+      </div>
+  </header>
+  <br/>
+  <div class="container">
+    <div class="row">
+        
+      <div class="col-md-6 offset-md-3">
+        <div class="card">
+          <div class="card-header">
+            <strong>Order Summary</strong>
+          </div>
+          <div class="card-body">
+            {% for product in cart_products %}
+                {{ product.name }}: 
+                    {% if product.is_sale %}
+                        PKR {{ product.sale_price }}
+                    {% else %}
+                        PKR {{ product.price }}
+                {% endif %}
+
+                <br/>
+                <small>
+                    {% for key, value in quantities.items %}
+                        {% if key == product.id|slugify %}
+                            <ul class="list-unstyled large">
+                                <li>Quantity: {{ value.quantity }}</li>
+                                {% if value.cleaning_kit %}<li>Cleaning Kit: Included</li>{% endif %}
+                                {% if value.prescription_type %}<li>Prescription Type: {{ value.prescription_type }}</li>{% endif %}
+                                {% if value.lens_type %}<li>Lens Type: {{ value.lens_type }}</li>{% endif %}
+                                {% if value.right_sph %}<li>Right SPH: {{ value.right_sph }}</li>{% endif %}
+                                {% if value.right_cyl %}<li>Right CYL: {{ value.right_cyl }}</li>{% endif %}
+                                {% if value.right_axis %}<li>Right Axis: {{ value.right_axis }}</li>{% endif %}
+                                {% if value.left_sph %}<li>Left SPH: {{ value.left_sph }}</li>{% endif %}
+                                {% if value.left_cyl %}<li>Left CYL: {{ value.left_cyl }}</li>{% endif %}
+                                {% if value.left_axis %}<li>Left Axis: {{ value.left_axis }}</li>{% endif %}
+                                {% if value.prescription_text %}<li>Prescription Text: {{ value.prescription_text }}</li>{% endif %}
+                                {% if value.prescription_file %}
+                                    <li>Prescription File: <a href="/media/{{ value.prescription_file }}" target="_blank">View File</a></li>
+                                {% endif %}
+                            </ul>
+                        {% endif %}
+                    {% endfor %}
+                </small>
+                <br/><br/>
+
+            {% endfor %}
+            Total:  PKR {{ totals }}
+            <br/><br/>
+            <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update Items</a>
+          </div>
+        </div>
+        <br/><br/>
+        <div class="card">
+          <div class="card-header">
+            Shipping Info
+          </div>
+          <div class="card-body">
+            
+            Name: {{ shipping_form.shipping_full_name }}<br/>
+            Email: {{ shipping_form.shipping_email }}<br/>
+            Address: {{ shipping_form.shipping_address }}<br/>
+            <!-- Address 2: {{ shipping_info.shipping_address2 }}<br/> -->
+            City: {{ shipping_form.shipping_city }}<br/>
+            Province: {{ shipping_form.shipping_province }}<br/>
+            Zipcode: {{ shipping_form.shipping_zipcode }}<br/>
+            Country: {{ shipping_form.shipping_country }}<br/>
+            <br/>
+            <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping</a>
+
+          </div>
+        </div>
+        <br/><br/>
+
+
+
+        <form method="POST" action="{% url 'process_order' %}">
+          {% csrf_token %}
+
+          <div class="card">
+            <div class="card-header">
+              <strong>Select Payment Method</strong>
+            </div>
+            <div class="card-body">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="COD" checked>
+                <label class="form-check-label" for="cod">
+                  Cash on Delivery (COD)
+                </label>
+              </div>
+
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="payment_method" id="bank" value="Bank Transfer">
+                <label class="form-check-label" for="bank">
+                  Bank Transfer
+                </label>
+              </div>
+
+              <div id="bank-details" class="mt-3" style="display: none;">
+                <strong>Bank Transfer Instructions:</strong><br/>
+                {% if bank_details %}
+                    Bank: {{ bank_details.bank_name }}<br/>
+                    Account Title: {{ bank_details.account_title }}<br/>
+                    Account #: {{ bank_details.account_number }}<br/>
+                    IBAN: {{ bank_details.iban }}<br/>
+                    {{ bank_details.instructions|linebreaks }}
+                {% else %}
+                    <em>No bank details found. Please contact support.</em>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <br/>
+          <button type="submit" class="btn btn-secondary">Place Order</button>
+        </form>
+
+        <br/><br/>
+
+
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const cod = document.getElementById('cod');
+      const bank = document.getElementById('bank');
+      const details = document.getElementById('bank-details');
+
+      function toggleDetails() {
+        details.style.display = bank.checked ? 'block' : 'none';
+      }
+
+      cod.addEventListener('change', toggleDetails);
+      bank.addEventListener('change', toggleDetails);
+      toggleDetails();  // run on load
+    });
+  </script>
+
+
+{% endblock %}

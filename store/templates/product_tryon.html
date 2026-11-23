@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container text-center mt-4">
+  <h2>Virtual Try-On: {{ product.name }}</h2>
+
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  <div style="max-width: 640px; width: 100%; margin: auto;">
+    <canvas id="canvas" width="640" height="480" class="border rounded shadow" style="max-width: 100%; height: auto;"></canvas>
+  </div>
+
+  
+  <img id="overlay" src="{{ product.tryon_image.url }}" style="display:none;">
+
+  <!-- Pupillary Distance Control -->
+  <div class="mt-3 d-flex justify-content-center align-items-center gap-2">
+    <span>👁 Pupillary Distance:</span>
+    <button id="pd-dec" class="btn btn-outline-secondary btn-sm">-</button>
+    <span id="pd-value">61</span> mm
+    <button id="pd-inc" class="btn btn-outline-secondary btn-sm">+</button>
+  </div>
+
+  <div class="mt-3 d-flex justify-content-center gap-3">
+    <a href="{% url 'product' product.id %}" class="btn btn-secondary">⬅ Back to Product</a>
+    <button id="download-snap" class="btn btn-success">📸 Save Snapshot</button>
+  </div>
+</div>
+
+<br>
+
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<script src="{% static 'js/tryon.js' %}"></script>
+{% endblock %}

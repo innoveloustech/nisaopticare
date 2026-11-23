@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+      
+        {% if banners %}
+            <header class="bg-dark">
+                <div id="carouselBanner" class="carousel slide" data-bs-ride="carousel">
+                    
+                    <!-- Indicators -->
+                    <div class="carousel-indicators">
+                        {% for banner in banners %}
+                            <button type="button" data-bs-target="#carouselBanner" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}"></button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Slides -->
+                    <div class="carousel-inner">
+                        {% for banner in banners %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                {% if banner.link %}
+                                    <a href="{{ banner.link }}">
+                                        <img src="{{ banner.image.url }}" class="d-block w-100" alt="Banner {{ forloop.counter }}" style="max-height: 400px; object-fit: cover;">
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'shop' %}">
+                                        <img src="{{ banner.image.url }}" class="d-block w-100" alt="Banner {{ forloop.counter }}" style="max-height: 400px; object-fit: cover;">
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Controls -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselBanner" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselBanner" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                
+            </header>
+
+        {% else %}
+
+            <header class="bg-dark py-5">
+
+                <a href="{% url 'shop' %}" style="text-decoration: none; color: inherit;">
+                    <div class="container px-4 px-lg-5 my-5">
+                        <div class="text-center text-white">
+                            <h1 class="display-4 fw-bolder">Welcome to Nisa.Opticare</h1>
+                            <p class="lead fw-normal text-white-50 mb-0">Your trusted optical store</p>
+                        </div>
+                    </div>
+                </a>
+            </header>
+
+
+        {% endif %}
+
+        <!-- Categories  Section -->
+        <section class="mt-5 mb-5">
+            <div class="container">
+                <h3 class="mb-4 fw-bold text-center border-bottom pb-2">Categories</h3>
+
+                <div class="glider-contain">
+                    <div class="glider">
+                        {% for category in categories %}
+                        <a href="{% url 'category' foo=category.name %}" class="text-decoration-none text-dark p-2" style="display: block;">
+                            <div class="card h-100  border-0 text-center">
+                                <!-- {% if category.image %}
+                                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="card-img-top rounded-circle mx-auto mt-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-dark mx-auto mt-3" style="width: 150px; height: 150px;"></div>
+                                {% endif %} -->
+                                <div class="rounded-circle color-bronze mx-auto mt-3 d-flex justify-content-center align-items-center" style="width: 150px; height: 150px; overflow: hidden;">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body">
+                                    <h5 class="card-title text-black">{{ category.name }}</h5>
+                                    <!-- <p class="card-text text-muted">Category</p> -->
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+
+                        {% for subcat in subcategories %}
+                        <a href="{% url 'category' subcat.name %}" class="text-decoration-none text-dark p-2" style="display: block;">
+                            <div class="card h-100  border-0 text-center">
+                                <!-- {% if subcat.image %}
+                                    <img src="{{ subcat.image.url }}" alt="{{ subcat.name }}" class="card-img-top rounded-circle mx-auto mt-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-dark mx-auto mt-3" style="width: 150px; height: 150px;"></div>
+                                {% endif %} -->
+                                <div class="rounded-circle color-bronze mx-auto mt-3 d-flex justify-content-center align-items-center" style="width: 150px; height: 150px; overflow: hidden;">
+                                    {% if subcat.image %}
+                                        <img src="{{ subcat.image.url }}" alt="{{ subcat.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body">
+                                    <h5 class="card-title text-black">{{ subcat.name }}</h5>
+                                    <!-- <p class="card-text text-muted">Subcategory</p> -->
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+
+                        {% for gender in genders %}
+                        <a href="{% url 'category' gender.name %}" class="text-decoration-none text-dark p-2" style="display: block;">
+                            <div class="card h-100  border-0 text-center">
+                                <!-- {% if gender.image %}
+                                    <img src="{{ gender.image.url }}" alt="{{ gender.name }}" class="card-img-top rounded-circle mx-auto mt-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-dark mx-auto mt-3" style="width: 150px; height: 150px;"></div>
+                                {% endif %} -->
+                                <div class="rounded-circle color-bronze mx-auto mt-3 d-flex justify-content-center align-items-center" style="width: 150px; height: 150px; overflow: hidden;">
+                                    {% if gender.image %}
+                                        <img src="{{ gender.image.url }}" alt="{{ gender.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body">
+                                    <h5 class="card-title text-black">{{ gender.name }}</h5>
+                                    <!-- <p class="card-text text-muted">Gender</p> -->
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Optional arrows -->
+                    <button role="button" aria-label="Previous" class="glider-prev">«</button>
+                    <button role="button" aria-label="Next" class="glider-next">»</button>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Collections / Blogs Section -->
+        <section class="py-5 bg-light">
+            <div class="container-fluid">
+                <h2 class="mb-5 fw-bold text-center">Our Collections</h2>
+
+                {% for blog in blogs %}
+                <div class="row align-items-center mb-5 px-4">
+                    <!-- Image Left, Text Right -->
+                    <div class="col-md-6 {% if forloop.counter|divisibleby:2 %}order-md-2{% endif %} text-center">
+                        {% if blog.image %}
+                        <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid rounded shadow" style="max-height: 350px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 {% if forloop.counter|divisibleby:2 %}order-md-1{% endif %}">
+                        <h3 class="fw-bold">{{ blog.title }}</h3>
+                        <p class="text-muted">{{ blog.description }}</p>
+                        <a href="{% url 'search' %}?search_key={{ blog.keywords|urlencode }}" class="btn btn-outline-dark mt-auto">
+                            View Products
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center">No collections available right now.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+
+
+
+        <!-- Best Sellers -->
+        <section class="py-5">
+
+            <div class="container px-4 px-lg-5 mt-5">
+
+                <!-- ✅ Best Sellers Heading Bar -->
+                <h2 class="mb-4 fw-bold text-center border-bottom pb-2">Best Sellers</h2>
+
+            
+                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+
+                    {% for product in best_sellers %}
+                        {% include 'product_card.html' with product=product %}
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="mt-5 mb-5">
+            <div class="container">
+                <h3 class="mb-4 fw-bold text-center border-bottom pb-2">What Our Customers Say</h3>
+
+                <div class="glider-contain" id="reviews-carousel">
+                <div class="glider2">
+                    {% for review in reviews %}
+                    <div class="p-2">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                {% if review.user %}
+                                    {{ review.user.username|first|upper }}
+                                {% else %}
+                                    A
+                                {% endif %}
+                            </div>
+                            <div>
+                            <h6 class="mb-0">
+                                {% if review.user %}
+                                {{ review.user.username }}
+                                {% else %}
+                                Anonymous
+                                {% endif %}
+                            </h6>
+                            <div class="text-warning">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            </div>
+                        </div>
+                        <p class="mt-2">{{ review.comment|truncatechars:150 }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                        <small class="text-muted">
+                            For <a href="{% url 'product' review.product.id %}">{{ review.product.name }}</a><br>
+                            {{ review.created_at|date:"F j, Y" }}
+                        </small>
+                        </div>
+                    </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Optional arrows -->
+                <button role="button" aria-label="Previous" class="glider-prev">«</button>
+                <button role="button" aria-label="Next" class="glider-next">»</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Brands Section -->
+        <section>
+            <h3 class="text-center mb-4">Brands</h3> <!-- Center heading -->
+            <div class="row text-center justify-content-center"> <!-- Centering row -->
+                {% for brand in brands %}
+                    <div class="col-md-2 mb-4"> <!-- Add some margin-bottom for spacing -->
+                        <a href="{{ brand.website }}" target="_blank">
+                            <!-- Equalize image size and keep responsive aspect ratio -->
+                            <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="img-fluid" style="max-height: 100px; object-fit: contain;">
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                new Glider(document.querySelector('#reviews-carousel .glider2'), {
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                draggable: true,
+                dots: false,
+                arrows: {
+                    prev: '#reviews-carousel .glider-prev',
+                    next: '#reviews-carousel .glider-next'
+                },
+                responsive: [
+                    {
+                    breakpoint: 768,
+                    settings: {
+                        slidesToShow: 3,
+                        slidesToScroll: 1
+                    }
+                    },
+                    {
+                    breakpoint: 480,
+                    settings: {
+                        slidesToShow: 1,
+                        slidesToScroll: 1
+                    }
+                    }
+                ]
+                });
+
+                new Glider(document.querySelector('.glider'), {
+                    slidesToShow: 3,
+                    slidesToScroll: 1,
+                    draggable: true,
+                    dots: false,
+                    arrows: {
+                        prev: '.glider-prev',
+                        next: '.glider-next'
+                    },
+                    responsive: [
+                        {
+                            // When screen width is less than 768px, show 2 slides
+                            breakpoint: 768,
+                            settings: {
+                                slidesToShow: 4,
+                                slidesToScroll: 1
+                            }
+                        },
+                        {
+                            // When screen width is less than 480px, show 1 slide
+                            breakpoint: 480,
+                            settings: {
+                                slidesToShow: 1,
+                                slidesToScroll: 1
+                            }
+                        }
+                    ]
+                });
+            });
+        </script>
+
+        
+
+{% endblock %}

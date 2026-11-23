@@ -1,0 +1,100 @@
+{% extends 'base.html' %} 
+{% block content %}
+
+<!-- Header-->
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Register</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Register for a User Account...</p>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+
+            <br/><br/>
+
+            <!-- Display success and error messages -->
+            <!-- {% if messages %}
+                <div class="alert alert-danger">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %} -->
+
+            <form method="POST" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                    {{ form.username.help_text|safe }}
+                </div>
+                <br/>
+
+                <!-- First Name -->
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+                <br/>
+
+                <!-- Last Name -->
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+                <br/>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                <br/>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                    {{ form.password1 }}
+                    {{ form.password1.errors }}
+                    {{ form.password1.help_text|safe }}
+                </div>
+                <br/>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                    {{ form.password2 }}
+                    {{ form.password2.errors }}
+                    {{ form.password2.help_text|safe }}
+                </div>
+
+                <br/><br/>
+                <button type="submit" class="btn btn-secondary">
+                    Register
+                </button>
+            </form>
+
+            <br/><br/>
+            <br/><br/>
+            <br/><br/>
+            <br/><br/>
+            <br/><br/>
+            <br/><br/>
+            <br/><br/>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

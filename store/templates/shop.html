@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load querystring %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- FILTER SIDEBAR -->
+        <div class="col-lg-3 mb-4">
+            <!-- Toggle Button for Mobile -->
+            <button class="btn btn-outline-dark d-lg-none mb-3 w-100" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                Toggle Filters
+            </button>
+
+            <!-- Collapsible Filter Form -->
+            <div class="collapse d-lg-block" id="filterCollapse">
+                <form method="get" class="d-flex flex-column gap-3">
+
+                    <!-- CATEGORY Filter -->
+                    <div>
+                        <h6>Category</h6>
+                        {% for cat in categories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="category" value="{{ cat.id }}" id="cat{{ cat.id }}"
+                                {% if filters.category == cat.id|stringformat:"s" %}checked{% endif %}>
+                            <label class="form-check-label" for="cat{{ cat.id }}">{{ cat.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- SUBCATEGORY Filter -->
+                    <div>
+                        <h6>Subcategory</h6>
+                        {% for sub in subcategories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="subcategory" value="{{ sub.id }}" id="sub{{ sub.id }}"
+                                {% if filters.subcategory == sub.id|stringformat:"s" %}checked{% endif %}>
+                            <label class="form-check-label" for="sub{{ sub.id }}">{{ sub.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- GENDER Filter -->
+                    <div>
+                        <h6>Style For</h6>
+                        {% for g in genders %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="gender" value="{{ g.id }}" id="gender{{ g.id }}"
+                                {% if filters.gender == g.id|stringformat:"s" %}checked{% endif %}>
+                            <label class="form-check-label" for="gender{{ g.id }}">{{ g.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- PRICE RANGE -->
+                    <div>
+                        <h6>Price Range</h6>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="min_price" placeholder="Min" value="{{ filters.min_price }}">
+                            <input type="number" class="form-control" name="max_price" placeholder="Max" value="{{ filters.max_price }}">
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-dark">Apply Filters</button>
+                        <a href="{% url 'shop' %}" class="btn btn-secondary">Clear Filters</a>
+                    </div>
+
+
+
+                </form>
+            </div>
+        </div>
+
+        <!-- PRODUCT LIST -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold">Products</h4>
+
+                <!-- Sorting dropdown (STEP 4) -->
+                <!-- <select name="sort" onchange="this.form.submit()" class="form-select w-auto d-inline-block">
+                    <option value="">Sort By</option>
+                    <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
+                    <option value="name_asc" {% if request.GET.sort == "name_asc" %}selected{% endif %}>Name: A-Z</option>
+                    <option value="name_desc" {% if request.GET.sort == "name_desc" %}selected{% endif %}>Name: Z-A</option>
+                </select> -->
+                <form method="get" id="sortForm">
+                    <select name="sort" onchange="this.form.submit()" class="form-select w-auto d-inline-block">
+                        <option value="">Sort By</option>
+                        <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
+                        <option value="name_asc" {% if request.GET.sort == "name_asc" %}selected{% endif %}>Name: A-Z</option>
+                        <option value="name_desc" {% if request.GET.sort == "name_desc" %}selected{% endif %}>Name: Z-A</option>
+                    </select>
+
+                    {# Important: preserve other filters using hidden inputs #}
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sort' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                </form>
+            </div>
+
+            <div id="product-list">
+                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3 justify-content-center">
+                    {% for product in page_obj %}
+                        {% include 'product_card.html' with product=product %}
+                    {% empty %}
+                        <p>No products found.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination (STEP 6) -->
+                {% include 'pagination.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const filterForm = document.querySelector('form');
+        const productList = document.getElementById('product-list');
+
+        function applyFilters(e) {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams(formData).toString();
+
+            fetch("{% url 'shop' %}?" + params, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.getElementById('product-list');
+                productList.innerHTML = newContent.innerHTML;
+                window.history.pushState({}, '', `{% url 'shop' %}?${params}`);
+            });
+        }
+
+        filterForm.addEventListener('change', applyFilters);
+    });
+</script>
+
+
+{% endblock %}

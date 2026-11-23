@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Shopping Cart</h1>
+                <p class="lead fw-normal text-white-50 mb-0">View Your Cart...</p>
+            </div>
+        </div>
+    </header>
+    <br/>
+    <div class="container">
+        {% if cart_items %}
+        	{% for item in cart_items %}
+                {% with product=item.product %}
+                <div class="card mb-3">
+                    <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="{{ product.name }}">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body text-center">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description }}</p>
+
+                        {% if product.is_sale %}
+                            <div class="badge bg-danger">On Sale!</div>
+                            <div><strike>PKR {{ product.price }}</strike></div>
+                            <div>PKR {{ product.sale_price }}</div>
+                        {% else %}
+                            <div>PKR {{ product.price }}</div>
+                        {% endif %}
+
+                        <hr>
+
+
+                        <label for="qty{{ item.product.id }}" class="me-2 fw-bold">Quantity:</label>
+                        <input
+                            type="number"
+                            id="qty{{ item.product.id }}"
+                            class="form-control w-auto d-inline-block me-2"
+                            min="1"
+                            max="{{ item.product.quantity_in_stock }}"
+                            value="{{ item.quantity }}"
+                            data-original="{{ item.quantity }}"
+                            data-product-id="{{ item.product.id }}"
+                        >
+
+
+                        <p class="text-muted small">In stock: {{ item.product.quantity_in_stock }}</p>
+
+
+                        <!-- 1. Add-ons Breakdown -->
+                        {% if item.addons %}
+                            <div class="mb-3">
+                                <h6 class="fw-semibold">Selected Add-Ons:</h6>
+                                <ul class="list-unstyled">
+                                    {% for addon in item.addons %}
+                                        <li>+ {{ addon.name }} (PKR {{ addon.price }})</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- 2. Eye Prescription Info -->
+                        {% if item.prescription_type %}
+                            <div class="mb-2">
+                                <p><strong>Prescription Type:</strong> {{ item.prescription_type|title }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if item.lens_type %}
+                            <div class="mb-2">
+                                <p><strong>Lens Type:</strong> {{ item.lens_type|title }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if item.right_eye.sph or item.left_eye.sph %}
+                            <div class="mb-2">
+                                <p><strong>Right Eye:</strong> SPH: {{ item.right_eye.sph }}, CYL: {{ item.right_eye.cyl }}, AXIS: {{ item.right_eye.axis }}</p>
+                                <p><strong>Left Eye:</strong> SPH: {{ item.left_eye.sph }}, CYL: {{ item.left_eye.cyl }}, AXIS: {{ item.left_eye.axis }}</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- 3. Prescription Text/File -->
+                        {% if item.prescription_text %}
+                            <p><strong>Prescription Text:</strong> {{ item.prescription_text }}</p>
+                        {% endif %}
+
+                        {% if item.prescription_file %}
+                            <p><strong>Prescription File:</strong> 
+                                <a href="/media/{{ item.prescription_file }}" target="_blank">View File</a>
+                            </p>
+                        {% endif %}
+
+                        <!-- 4. Subtotal -->
+                        <div class="mb-3">
+                            <p><strong>Total for this Product:</strong> PKR {{ item.subtotal }}</p>
+                        </div>
+
+
+                        
+
+                        <hr>
+
+                        <button class="btn btn-outline-dark edit-product"
+                            data-product-id="{{ item.product.id }}"
+                            data-quantity="{{ item.quantity }}"
+                            data-cleaning-kit="{{ item.cleaning_kit }}"
+                            data-prescription-type="{{ item.prescription_type }}"
+                            data-lens-type="{{ item.lens_type }}"
+
+                            data-right-sph="{{ item.right_eye.sph }}"
+                            data-right-cyl="{{ item.right_eye.cyl }}"
+                            data-right-axis="{{ item.right_eye.axis }}"
+
+                            data-left-sph="{{ item.left_eye.sph }}"
+                            data-left-cyl="{{ item.left_eye.cyl }}"
+                            data-left-axis="{{ item.left_eye.axis }}"
+
+                            data-prescription-text="{{ item.prescription_text }}"
+                            
+                            {% if item.prescription_file %}
+                                data-prescription-file-url="{{ item.prescription_file }}"
+                            {% endif %}
+                            >
+                            ✏️ Edit
+                        </button>
+                        
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-secondary update-cart">Update</button>
+                        <button type="button" data-index="{{ product.id }}" class="btn btn-danger delete-product">Remove</button>
+
+
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                {% endwith %}
+            {% endfor %}
+
+
+            <div align="right">
+                <h3>Total: PKR {{ totals }}</h3>
+                <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
+
+            </div>
+            <br/><br/><br/>
+
+        {% else %}
+        	There's Nothing In Your Cart...
+        	<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+        {% endif %}
+
+    </div>
+
+
+
+
+    <script>
+        // Update Cart
+        $(document).on('click', '.update-cart', function(e){
+            e.preventDefault();
+            var productid = $(this).data('index');
+            var qtyInput = $('#qty' + productid);
+            var newQty = qtyInput.val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_update' %}",
+                data: {
+                    product_id: productid,
+                    product_qty: newQty,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    action: 'post'
+                },
+                success: function(json){
+                    qtyInput.data('original', newQty);  // Update original to new
+                    location.reload();  // Or better: update UI without reload
+                },
+                error: function(xhr, errmsg, err){
+                    alert('Update failed. Try again.');
+                    qtyInput.val(qtyInput.data('original'));  // Revert on error
+                }
+            });
+        });
+
+
+        // Delete Item From Cart
+        $(document).on('click', '.delete-product', function(e){
+            e.preventDefault();
+            // grab the product id
+            //var productid = $(this).data('index');
+
+            $.ajax({
+            type: 'POST',
+            url: "{% url 'cart_delete' %}",
+            data: {
+            product_id: $(this).data('index'),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+            },
+            success: function(json){
+                //console.log(json)
+                //document.getElementById("cart_quantity").textContent = json.qty
+                location.reload();
+            },
+
+            error: function(xhr, errmsg, err){
+
+            }
+
+
+            });
+
+        })
+
+        // Edit Product Button Click
+        $(document).on('click', '.edit-product', function() {
+            const $btn = $(this);
+            const productId = $btn.data('product-id');
+
+            const params = new URLSearchParams({
+                quantity: $btn.data('quantity'),
+                cleaning_kit: $btn.data('cleaningKit'),
+                prescription_type: $btn.data('prescriptionType'),
+                lens_type: $btn.data('lensType'),
+                right_sph: $btn.data('rightSph'),
+                right_cyl: $btn.data('rightCyl'),
+                right_axis: $btn.data('rightAxis'),
+                left_sph: $btn.data('leftSph'),
+                left_cyl: $btn.data('leftCyl'),
+                left_axis: $btn.data('leftAxis'),
+                prescription_text: $btn.data('prescriptionText'),
+                prescription_file_url: $btn.data('prescription-file-url'),
+            });
+
+            // Add prescription file URL if present
+            // const fileUrl = $btn.data('prescription-file-url');
+            // if (fileUrl) {
+            //     params.append('prescription_file_url', fileUrl);
+            // }
+
+            window.location.href = `/product/${productId}/?${params.toString()}`;
+        });
+
+
+
+
+    </script>
+
+
+{% endblock %}
