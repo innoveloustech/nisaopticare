@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['ecom.innovelous.com']
-CSRF_TRUSTED_ORIGINS = ['https://djangotest.com', 'https://django-ecommerce-production-81b6.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://tryon.innovelous.com', 'https://djangotest.com', 'https://django-ecommerce-production-81b6.up.railway.app']
 
 # Application definition
 
